@@ -41,6 +41,8 @@ To ensure identical execution across staging and production systems, the applica
 
 2.Docker Compose (docker-compose.yaml)
 
+<img width="1920" height="1080" alt="Screenshot (170)" src="https://github.com/user-attachments/assets/d3d5caa5-a12e-48a7-aae9-e9d2a78de39b" />
+
 ## 📦 Step 2: Source Control Tracking & GitHub Initialization
 Before staging the codebase for remote publication, configure git rules to stop temporary logs and heavy local modules (node_modules) from polluting the repository.
 
@@ -56,6 +58,8 @@ Verify your generated .gitignore file contains a dedicated entry blocking the no
 
 ### 2. Pushing the Local Workspace to GitHub
 Execute the local initialization sequence and link your system workspace to your upstream cloud repository.
+
+<img width="1920" height="1080" alt="Screenshot (168)" src="https://github.com/user-attachments/assets/c31ab6f7-3e63-4923-a1b8-92c9b803f386" />
 
 ## ☁️ Step 3: AWS EC2 Provisioning, Docker Installation & Manual Verification
 
@@ -79,6 +83,9 @@ Connect to your remote AWS instance via your terminal using your private key (`.
 Clone your repository directly onto the EC2 virtual machine and launch your environment using Docker Compose to verify that everything works correctly.
 
 ---
+<img width="1920" height="1080" alt="Screenshot (171)" src="https://github.com/user-attachments/assets/07befc37-0d33-492e-85c8-33978eaf5457" />
+
+---
 ### 4. Verifying Runtime Service Access
 To test if your application is successfully serving traffic on the open port, run a local request test within the instance or from your external terminal using the instance's Public IP address:
 
@@ -90,3 +97,70 @@ curl http://YOUR_AWS_EC2_PUBLIC_IP:8080
 ```Bash
 {"msg": "Hello from the server "}
 ```
+<img width="2340" height="1333" alt="Automated Node js Deployment with GitHub Actions, Docker, and AWS - visual selection" src="https://github.com/user-attachments/assets/22e51928-bd2f-484e-a97a-0970f05640ac" />
+
+
+## 🤖 Step 4: CI/CD Automation Setup (GitHub Actions)
+
+[cite_start]This section details the final stage of configuring GitHub Actions to establish an automated pipeline, allowing any future code updates pushed to the repository to deploy seamlessly to the AWS server[cite: 28].
+
+---
+
+### 1. Project Directory Structure
+[cite_start]Create the tracking directories required by GitHub Actions inside your project's root folder:
+
+```text
+📁 .github/
+└── 📁 workflows/
+    └── 📄 deploy.yaml
+```
+
+## 2. Safeguarding Environment Secrets (GitHub Settings)
+To prevent unauthorized access, never expose sensitive server credentials directly in your public code. Secure them using GitHub Repository Secrets:
+1. On GitHub, navigate to your repository page.
+2. Click Settings ➔ Secrets and variables ➔ Actions.
+3. Click New repository secret to store the following variables:
+Secret Name                       Secret Value Descriptionv
+   ||                                         ||
+   \/                                         \/
+1. SSH_HOST                              The Public IP address of your running AWS Ubuntu EC2 instance.
+2. SSH_PRIVATE_KEY                       The complete text contents of your secure private key file (.pem).
+
+<img width="1920" height="1080" alt="Screenshot (166)" src="https://github.com/user-attachments/assets/2b7b4433-c08d-4986-8bba-ba283d865df6" />
+
+### 3. Creating the Automation Workflow Logic (deploy.yaml)
+Add the following workflow pipeline orchestration code to your .github/workflows/deploy.yaml configuration:
+
+```Bash
+name: Deploy NodeJS Application to Hostinger
+
+on:
+ push:
+   branches:
+     - master
+
+jobs:
+  deploy:
+     runs-on: ubuntu-latest
+     
+     steps:
+       - name: Checkout Code
+         uses: actions/checkout@v4
+        
+       - name: Deploy Via SSH
+         uses: appleboy/ssh-action@v1.0.3
+         with: 
+           host: ${{secrets.SSH_HOST}}
+           username: root
+           key: ${{secrets.SSH_KEY}}
+           script:
+             cd /root/nodejs_application_deploy
+             git pull
+             docker compose up -d --build
+```
+### 4. Triggering the Automated Deployment Sequence
+Commit and synchronize the latest structural pipeline rules to your remote repository to test live execution.
+
+### 🎯 Pipeline Outcome: >
+Navigate to the Actions tab of your GitHub repository to view your running pipeline. Any future code modifications pushed to your main branch will automatically update the tracking code, build the container environment, and update your AWS production instance dynamically without manual server intervention.
+<img width="2484" height="1927" alt="Automated Node js Deployment with GitHub Actions, Docker, and AWS - visual selection (1)" src="https://github.com/user-attachments/assets/4b533d2e-ca99-4fb1-882e-d8096471a18a" />
